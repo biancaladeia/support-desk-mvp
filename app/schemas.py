@@ -2,7 +2,7 @@ from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from enum import Enum
 from uuid import UUID
 from typing import List
-from pydantic import ConfigDict
+from datetime import datetime
 
 class TicketStatus(str, Enum):
     open = "open"
@@ -41,3 +41,26 @@ class TicketListOut(BaseModel):
 
 class TicketAssigneeUpdate(BaseModel):
     assignee_id: UUID | None
+
+class TicketMessageCreate(BaseModel):
+    author_id: UUID
+    body: str
+
+class TicketMessageOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    author_id: UUID
+    body: str
+    created_at: datetime
+
+class TicketDetailOut(BaseModel):
+    """Detalhe do ticket + mensagens internas."""
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    number: int
+    title: str
+    description: str
+    requester_name: str
+    requester_email: str
+    status: TicketStatus
+    messages: list[TicketMessageOut]
