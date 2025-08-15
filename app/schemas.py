@@ -26,3 +26,6 @@ class TicketOut(BaseModel):
     requester_name: str
     requester_email: EmailStr
     status: TicketStatus
+
+class TicketStatusUpdate(BaseModel):
+    status: TicketStatus

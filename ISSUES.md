@@ -8,8 +8,8 @@
 ## 1. Registro de Tickets
 - [X] Modelos `User`, `Ticket`
 - [X] Alembic: migração inicial (users, tickets)
-- [ ] Endpoint POST /tickets (criar ticket com number único)
-- [ ] Endpoint GET /tickets/{id} (detalhe do ticket)
+- [X] Endpoint POST /tickets (criar ticket com number único)
+- [X] Endpoint GET /tickets/{id} (detalhe do ticket)
 
 ## 2. Status do Ticket
 - [ ] Campo `status ∈ {open, in_progress, waiting_customer, resolved, closed}`

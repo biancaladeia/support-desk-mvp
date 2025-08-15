@@ -5,6 +5,7 @@ from app.db import get_db
 from app.models import Ticket
 from app.schemas import TicketCreate, TicketOut
 from uuid import UUID 
+from app.schemas import TicketCreate, TicketOut, TicketStatusUpdate
 
 router = APIRouter()
 
@@ -32,4 +33,14 @@ def get_ticket(ticket_id: UUID, db: Session = Depends(get_db)):
     t = db.get(Ticket, ticket_id)
     if not t:
         raise HTTPException(status_code=404, detail="Ticket not found")
+    return t
+
+@router.patch("/{ticket_id}/status", response_model=TicketOut)
+def update_status(ticket_id: UUID, payload: TicketStatusUpdate, db: Session = Depends(get_db)):
+    t = db.get(Ticket, ticket_id)
+    if not t:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    t.status = payload.status
+    db.commit()
+    db.refresh(t)
     return t
