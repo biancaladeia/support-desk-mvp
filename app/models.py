@@ -4,6 +4,7 @@ from datetime import datetime
 import enum
 import uuid
 from typing import Optional
+from sqlalchemy import Index
 
 class Base(DeclarativeBase):
     pass
@@ -51,4 +52,9 @@ class Ticket(Base):
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+    __table_args__ = (
+        Index("ix_tickets_status", "status"),
+        Index("ix_tickets_assignee_id", "assignee_id"),
+        Index("ix_tickets_requester_email", "requester_email"),
     )

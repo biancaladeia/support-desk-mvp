@@ -12,12 +12,12 @@
 - [X] Endpoint GET /tickets/{id} (detalhe do ticket)
 
 ## 2. Status do Ticket
-- [ ] Campo `status ∈ {open, in_progress, waiting_customer, resolved, closed}`
-- [ ] Endpoint PATCH /tickets/{id}/status
+- [X] Campo `status ∈ {open, in_progress, waiting_customer, resolved, closed}`
+- [X] Endpoint PATCH /tickets/{id}/status
 
 ## 3. Listagem e Filtros
-- [ ] Endpoint GET /tickets?q=&status=&assignee_id=&page=&limit=
-- [ ] Índices em status, assignee_id, requester_email
+- [X] Endpoint GET /tickets?q=&status=&assignee_id=&page=&limit=
+- [X] Índices em status, assignee_id, requester_email
 
 ## 4. Mensagens Internas
 - [ ] Modelo `TicketMessage(ticket_id, author_id, body)`
@@ -25,8 +25,8 @@
 - [ ] Incluir mensagens no GET /tickets/{id}
 
 ## 5. Atribuição de Responsável
-- [ ] FK `tickets.assignee_id -> users.id`
-- [ ] Endpoint PATCH /tickets/{id}/assignee
+- [X] FK `tickets.assignee_id -> users.id`
+- [X] Endpoint PATCH /tickets/{id}/assignee
 
 ## 6. Auditoria/Histórico
 - [ ] Modelo `TicketAudit(ticket_id, actor_id, event_type, payload)`

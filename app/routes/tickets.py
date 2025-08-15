@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from app.db import get_db
-from app.models import Ticket
-from app.schemas import TicketCreate, TicketOut
+from app.models import Ticket, User
+from app.schemas import TicketCreate, TicketOut, TicketAssigneeUpdate
 from uuid import UUID 
-from app.schemas import TicketCreate, TicketOut, TicketStatusUpdate
+from app.schemas import TicketCreate, TicketOut, TicketStatusUpdate, TicketListOut, TicketStatus
+from typing import Optional
+
 
 router = APIRouter()
 
@@ -41,6 +43,69 @@ def update_status(ticket_id: UUID, payload: TicketStatusUpdate, db: Session = De
     if not t:
         raise HTTPException(status_code=404, detail="Ticket not found")
     t.status = payload.status
+    db.commit()
+    db.refresh(t)
+    return t
+
+def _build_filters(
+    q: Optional[str],
+    status: Optional[TicketStatus],
+    assignee_id: Optional[UUID],
+):
+    filters = []
+    if q:
+        like = f"%{q}%"
+        filters.append(or_(Ticket.title.ilike(like), Ticket.description.ilike(like)))
+    if status:
+        filters.append(Ticket.status == status)
+    if assignee_id is not None:
+        filters.append(Ticket.assignee_id == assignee_id)
+    return filters
+
+@router.get("", response_model=TicketListOut)
+def list_tickets(
+    q: Optional[str] = None,
+    status: Optional[TicketStatus] = None,
+    assignee_id: Optional[UUID] = None,
+    page: int = 1,
+    limit: int = 20,
+    db: Session = Depends(get_db),
+):
+    # sane defaults
+    page = max(page, 1)
+    limit = max(1, min(limit, 100))
+
+    filters = _build_filters(q, status, assignee_id)
+
+    # total
+    total = db.scalar(
+        select(func.count()).select_from(Ticket).where(*filters)
+    ) or 0
+
+    # pagina
+    stmt = (
+        select(Ticket)
+        .where(*filters)
+        .order_by(Ticket.created_at.desc())
+        .offset((page - 1) * limit)
+        .limit(limit)
+    )
+    items = db.execute(stmt).scalars().all()
+
+    return TicketListOut(items=items, page=page, limit=limit, total=total)
+
+@router.patch("/{ticket_id}/assignee", response_model=TicketOut)
+def update_assignee(ticket_id: UUID, payload: TicketAssigneeUpdate, db: Session = Depends(get_db)):
+    t = db.get(Ticket, ticket_id)
+    if not t:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    if payload.assignee_id:
+        user = db.get(User, payload.assignee_id)
+        if not user:
+            raise HTTPException(status_code=400, detail="Assignee not found")
+        t.assignee_id = user.id
+    else:
+        t.assignee_id = None
     db.commit()
     db.refresh(t)
     return t
