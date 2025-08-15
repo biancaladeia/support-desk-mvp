@@ -1,9 +1,9 @@
 # MVP – Service Desk Checklist
 
 ## 0. Setup
-- [ ] Configurar pyenv/venv e dependências (FastAPI, SQLAlchemy, Alembic)
-- [ ] Criar estrutura `app/` (main, db, models, schemas, routes)
-- [ ] Adicionar `.env` e `pydantic-settings` (DATABASE_URL)
+- [x] Configurar pyenv/venv e dependências (FastAPI, SQLAlchemy, Alembic) source .venv/bin/activate     
+- [x] Criar estrutura `app/` (main, db, models, schemas, routes)
+- [x] Adicionar `.env` e `pydantic-settings` (DATABASE_URL)
 
 ## 1. Registro de Tickets
 - [ ] Modelos `User`, `Ticket`
