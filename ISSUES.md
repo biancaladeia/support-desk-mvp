@@ -6,8 +6,8 @@
 - [x] Adicionar `.env` e `pydantic-settings` (DATABASE_URL)
 
 ## 1. Registro de Tickets
-- [ ] Modelos `User`, `Ticket`
-- [ ] Alembic: migração inicial (users, tickets)
+- [X] Modelos `User`, `Ticket`
+- [X] Alembic: migração inicial (users, tickets)
 - [ ] Endpoint POST /tickets (criar ticket com number único)
 - [ ] Endpoint GET /tickets/{id} (detalhe do ticket)
 
