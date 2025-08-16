@@ -27,15 +27,14 @@ class TicketStatus(str, enum.Enum):
 
 
 class User(Base):
-    __tablename__ = "users"
-
+    __tablename__ = 'users'
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=True)  # novo
     role: Mapped[Role] = mapped_column(Enum(Role), nullable=False, default=Role.agent)
     is_active: Mapped[bool] = mapped_column(nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-
 
 class Ticket(Base):
     __tablename__ = "tickets"

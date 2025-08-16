@@ -1,8 +1,9 @@
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from pydantic import BaseModel, EmailStr, Field, ConfigDict, constr
 from enum import Enum
 from uuid import UUID
 from typing import List
 from datetime import datetime
+from app.models import Role
 
 class TicketStatus(str, Enum):
     open = "open"
@@ -98,4 +99,19 @@ class AttachmentOut(BaseModel):
     mime: str
     path: str
     size: int
+    created_at: datetime
+
+class RegisterIn(BaseModel):
+    name: str = Field(..., max_length=120)
+    email: EmailStr
+    password: str = Field(..., min_length=6)
+    role: Role = Role.agent
+
+class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    name: str
+    email: EmailStr
+    role: Role
+    is_active: bool
     created_at: datetime

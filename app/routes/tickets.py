@@ -5,14 +5,17 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import select, func, or_
 
+from pydantic import BaseModel, EmailStr, constr
+from passlib.hash import bcrypt
+
 from pathlib import Path
 
 from app.db import get_db
-from app.models import Ticket, TicketMessage, User, TicketAudit, AuditEvent, Attachment
+from app.models import Ticket, TicketMessage, User, TicketAudit, AuditEvent, Attachment, Role
 from app.schemas import (
     TicketCreate, TicketOut, TicketStatusUpdate, TicketAssigneeUpdate,
     TicketMessageCreate, TicketMessageOut, TicketDetailOut, TicketStatus,
-    TicketListOut, TicketAuditOut, AttachmentOut
+    TicketListOut, TicketAuditOut, AttachmentOut, RegisterIn, UserOut
 )
 
 from app.security import require_agent, require_admin, require_agent_or_admin, get_current_user, TokenData
@@ -258,3 +261,18 @@ def upload_attachment(ticket_id: UUID, file: UploadFile = File(...), db: Session
     db.commit()
     db.refresh(att)
     return att
+
+@router.post("/register")
+def register(payload: RegisterIn, db: Session = Depends(get_db)):
+    if db.query(User).filter(User.email == payload.email).first():
+        raise HTTPException(status_code=400, detail="E‑mail já cadastrado")
+    user = User(
+        name=payload.name,
+        email=payload.email,
+        role=payload.role,
+        password_hash=bcrypt.hash(payload.password),
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return {"id": str(user.id), "email": user.email}

@@ -1,10 +1,24 @@
 from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from app.settings import settings
 from app.routes import tickets_router
 from app.routes.auth import router as auth_router
 from app.security import get_current_user, TokenData
 
 app = FastAPI(title="Support Desk MVP", version="0.1.0")
+
+origins = [
+    "http://localhost:5500",  # se servir com python -m http.server
+    "http://127.0.0.1:5500",
+    "https://<seu-usuario>.github.io",  # GitHub Pages
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins or ["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/health")
 def health():
