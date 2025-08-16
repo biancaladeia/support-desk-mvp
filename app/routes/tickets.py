@@ -6,13 +6,20 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, func, or_
 
 from app.db import get_db
-from app.models import Ticket, TicketMessage, User
+from app.models import Ticket, TicketMessage, User, TicketAudit, AuditEvent
 from app.schemas import (
     TicketCreate, TicketOut, TicketStatusUpdate, TicketAssigneeUpdate,
-    TicketMessageCreate, TicketMessageOut, TicketDetailOut, TicketStatus, TicketListOut
+    TicketMessageCreate, TicketMessageOut, TicketDetailOut, TicketStatus,
+    TicketListOut, TicketAuditOut
 )
 
 router = APIRouter()
+
+def _audit(db: Session, *, ticket_id: UUID, event: AuditEvent, actor_id: UUID | None, payload: dict):
+    rec = TicketAudit(ticket_id=ticket_id, event_type=event, actor_id=actor_id, payload=payload or {})
+    db.add(rec)
+    # não faz commit aqui; cada rota decide quando commitar
+    return rec
 
 
 def next_ticket_number(db: Session) -> int:
@@ -51,7 +58,17 @@ def update_status(ticket_id: UUID, payload: TicketStatusUpdate, db: Session = De
     t = db.get(Ticket, ticket_id)
     if not t:
         raise HTTPException(status_code=404, detail="Ticket not found")
+    old = t.status
     t.status = payload.status
+# auditoria: status_changed
+    _audit(
+        db,
+        ticket_id=t.id,
+        event=AuditEvent.status_changed,
+        actor_id=None,
+        payload={"from": str(old), "to": str(t.status)},
+    )
+    
     db.commit()
     db.refresh(t)
     return t
@@ -106,8 +123,12 @@ def list_tickets(
 @router.patch("/{ticket_id}/assignee", response_model=TicketOut)
 def update_assignee(ticket_id: UUID, payload: TicketAssigneeUpdate, db: Session = Depends(get_db)):
     t = db.get(Ticket, ticket_id)
+
     if not t:
         raise HTTPException(status_code=404, detail="Ticket not found")
+    
+    old = str(t.assignee_id) if t.assignee_id else None
+
     if payload.assignee_id:
         user = db.get(User, payload.assignee_id)
         if not user:
@@ -115,8 +136,34 @@ def update_assignee(ticket_id: UUID, payload: TicketAssigneeUpdate, db: Session 
         t.assignee_id = user.id
     else:
         t.assignee_id = None
+
+# auditoria: assignee_changed
+    _audit(
+        db,
+        ticket_id=t.id,
+        event=AuditEvent.assignee_changed,
+        actor_id=payload.assignee_id,  # quem foi setado (ou None)
+        payload={"from": old, "to": str(t.assignee_id) if t.assignee_id else None},
+    )
+
     db.commit()
+
     db.refresh(t)
+
+    # auditoria: ticket_created
+    _audit(
+        db,
+        ticket_id=t.id,
+        event=AuditEvent.ticket_created,
+        actor_id=None,  # se tiver auth, passe o id do usuário autenticado
+        payload={
+            "number": t.number,
+            "title": t.title,
+            "requester_email": t.requester_email
+        },
+)
+    db.commit()  # confirma também a auditoria
+    
     return t
 
 
@@ -132,7 +179,28 @@ def add_message(ticket_id: UUID, payload: TicketMessageCreate, db: Session = Dep
         raise HTTPException(status_code=400, detail="Author not found")
 
     msg = TicketMessage(ticket_id=ticket_id, author_id=payload.author_id, body=payload.body)
+
     db.add(msg)
+
+ # auditoria: message_added
+    _audit(
+        db,
+        ticket_id=ticket_id,
+        event=AuditEvent.message_added,
+        actor_id=payload.author_id,
+        payload={"body_len": len(payload.body)},
+    )
+
     db.commit()
     db.refresh(msg)
     return msg
+
+@router.get("/{ticket_id}/audit", response_model=list[TicketAuditOut])
+def get_audit(ticket_id: UUID, db: Session = Depends(get_db)):
+    t = db.get(Ticket, ticket_id)
+    if not t:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    rows = db.execute(
+        select(TicketAudit).where(TicketAudit.ticket_id == ticket_id).order_by(TicketAudit.created_at.asc())
+    ).scalars().all()
+    return rows

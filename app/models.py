@@ -5,7 +5,7 @@ from typing import Optional
 
 from sqlalchemy import String, Text, Enum, DateTime, ForeignKey, Index, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.sql import func
 
 
@@ -72,3 +72,19 @@ class TicketMessage(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     ticket: Mapped["Ticket"] = relationship(back_populates="messages")
+
+class AuditEvent(str, enum.Enum):
+    ticket_created = "ticket_created"
+    status_changed = "status_changed"
+    assignee_changed = "assignee_changed"
+    message_added = "message_added"
+
+class TicketAudit(Base):
+    __tablename__ = "ticket_audit"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    ticket_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("tickets.id", ondelete="CASCADE"), nullable=False)
+    actor_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    event_type: Mapped[AuditEvent] = mapped_column(Enum(AuditEvent), nullable=False)
+    payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

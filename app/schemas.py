@@ -64,3 +64,18 @@ class TicketDetailOut(BaseModel):
     requester_email: str
     status: TicketStatus
     messages: list[TicketMessageOut]
+
+class AuditEvent(str, Enum):
+    ticket_created = "ticket_created"
+    status_changed = "status_changed"
+    assignee_changed = "assignee_changed"
+    message_added = "message_added"
+
+class TicketAuditOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    ticket_id: UUID
+    actor_id: UUID | None
+    event_type: AuditEvent
+    payload: dict
+    created_at: datetime
