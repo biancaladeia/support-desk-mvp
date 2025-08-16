@@ -34,11 +34,11 @@
 - [X] Endpoint GET /tickets/{id}/audit
 
 ## 7. RBAC simples
-- [ ] `users.role ∈ {agent, admin}` + seed inicial
-- [ ] Middleware JWT simples
-- [ ] Guards por rota
+- [X] `users.role ∈ {agent, admin}` + seed inicial
+- [X] Middleware JWT simples
+- [X] Guards por rota
 
 ## 8. Anexos (básico)
-- [ ] Modelo `Attachment(ticket_id, filename, mime, path, size)`
-- [ ] Endpoint POST /tickets/{id}/attachments
-- [ ] Listar anexos no detalhe do ticket
+- [X] Modelo `Attachment(ticket_id, filename, mime, path, size)`
+- [X] Endpoint POST /tickets/{id}/attachments
+- [X] Listar anexos no detalhe do ticket

@@ -53,6 +53,15 @@ class TicketMessageOut(BaseModel):
     body: str
     created_at: datetime
 
+class AttachmentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    filename: str
+    mime: str
+    path: str
+    size: int
+    created_at: datetime
+
 class TicketDetailOut(BaseModel):
     """Detalhe do ticket + mensagens internas."""
     model_config = ConfigDict(from_attributes=True)
@@ -64,6 +73,8 @@ class TicketDetailOut(BaseModel):
     requester_email: str
     status: TicketStatus
     messages: list[TicketMessageOut]
+    attachments: list[AttachmentOut]    
+
 
 class AuditEvent(str, Enum):
     ticket_created = "ticket_created"
@@ -78,4 +89,13 @@ class TicketAuditOut(BaseModel):
     actor_id: UUID | None
     event_type: AuditEvent
     payload: dict
+    created_at: datetime
+
+class AttachmentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    filename: str
+    mime: str
+    path: str
+    size: int
     created_at: datetime

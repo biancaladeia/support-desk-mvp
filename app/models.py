@@ -50,6 +50,10 @@ class Ticket(Base):
     assignee_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    attachments: Mapped[list["Attachment"]] = relationship(
+    back_populates="ticket", cascade="all, delete-orphan", order_by="Attachment.created_at.asc()"
+)
+
 
     messages: Mapped[list["TicketMessage"]] = relationship(
         back_populates="ticket", cascade="all, delete-orphan", order_by="TicketMessage.created_at.asc()"
@@ -72,6 +76,22 @@ class TicketMessage(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     ticket: Mapped["Ticket"] = relationship(back_populates="messages")
+
+class Attachment(Base):
+    __tablename__ = "attachments"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    ticket_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("tickets.id", ondelete="CASCADE"), nullable=False
+    )
+    filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    mime: Mapped[str] = mapped_column(String(120), nullable=False)
+    path: Mapped[str] = mapped_column(String(1024), nullable=False)  # caminho relativo no disco
+    size: Mapped[int] = mapped_column(nullable=False)  # bytes
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    ticket: Mapped["Ticket"] = relationship(back_populates="attachments")
+
 
 class AuditEvent(str, enum.Enum):
     ticket_created = "ticket_created"

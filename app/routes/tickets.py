@@ -1,22 +1,25 @@
 from uuid import UUID
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import select, func, or_
 
+from pathlib import Path
+
 from app.db import get_db
-from app.models import Ticket, TicketMessage, User, TicketAudit, AuditEvent
+from app.models import Ticket, TicketMessage, User, TicketAudit, AuditEvent, Attachment
 from app.schemas import (
     TicketCreate, TicketOut, TicketStatusUpdate, TicketAssigneeUpdate,
     TicketMessageCreate, TicketMessageOut, TicketDetailOut, TicketStatus,
-    TicketListOut, TicketAuditOut
+    TicketListOut, TicketAuditOut, AttachmentOut
 )
 
 from app.security import require_agent, require_admin, require_agent_or_admin, get_current_user, TokenData
 
 
 router = APIRouter()
+UPLOAD_ROOT = Path("uploads")
 
 def _audit(db: Session, *, ticket_id: UUID, event: AuditEvent, actor_id: UUID | None, payload: dict):
     rec = TicketAudit(ticket_id=ticket_id, event_type=event, actor_id=actor_id, payload=payload or {})
@@ -49,7 +52,10 @@ def create_ticket(payload: TicketCreate, db: Session = Depends(get_db)):
 # ---------- Detail (inclui mensagens internas) ----------
 @router.get("/{ticket_id}", response_model=TicketDetailOut)
 def get_ticket(ticket_id: UUID, db: Session = Depends(get_db)):
-    t = db.get(Ticket, ticket_id)
+    t = db.query(Ticket).options(
+        joinedload(Ticket.messages),
+        joinedload(Ticket.attachments)
+    ).filter(Ticket.id == ticket_id).first()
     if not t:
         raise HTTPException(status_code=404, detail="Ticket not found")
     return t
@@ -209,3 +215,46 @@ def get_audit(ticket_id: UUID, db: Session = Depends(get_db)):
     return rows
 
 
+@router.post("/{ticket_id}/attachments", response_model=AttachmentOut, status_code=201,
+             dependencies=[Depends(require_agent_or_admin)])
+def upload_attachment(ticket_id: UUID, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    t = db.get(Ticket, ticket_id)
+    if not t:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+
+    # cria pasta do ticket
+    ticket_dir = UPLOAD_ROOT / str(ticket_id)
+    ticket_dir.mkdir(parents=True, exist_ok=True)
+
+    # caminho final do arquivo
+    dest = ticket_dir / file.filename
+
+    # grava em disco (stream)
+    with dest.open("wb") as f:
+        for chunk in iter(lambda: file.file.read(1024 * 1024), b""):
+            f.write(chunk)
+
+    size = dest.stat().st_size
+    mime = file.content_type or "application/octet-stream"
+
+    att = Attachment(
+        ticket_id=ticket_id,
+        filename=file.filename,
+        mime=mime,
+        path=str(dest.as_posix()),  # salva relativo; você pode optar por salvar relativo à raiz
+        size=size,
+    )
+    db.add(att)
+
+    # auditoria (opcional)
+    _audit(
+        db,
+        ticket_id=ticket_id,
+        event=AuditEvent.message_added,  # você pode criar um AuditEvent `attachment_added` se quiser
+        actor_id=None,
+        payload={"filename": file.filename, "mime": mime, "size": size},
+    )
+
+    db.commit()
+    db.refresh(att)
+    return att
