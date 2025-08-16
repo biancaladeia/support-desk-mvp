@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Support Desk - Tickets</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="home-page">
+  <!-- Navigation bar -->
+  <nav class="navbar">
+    <div class="brand">Support Desk</div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <button id="newTicketBtn" class="primary-btn">Novo Ticket</button>
+    </div>
+    <div class="user-info">
+      <span id="userRole"></span>
+      <button id="logoutBtn">Sair</button>
+    </div>
+  </nav>
+  <!-- Filter inputs -->
+  <div class="filters">
+    <input type="text" id="searchInput" placeholder="Buscar tickets..." />
+    <select id="statusFilter">
+      <option value="">Todos status</option>
+      <option value="open">Aberto</option>
+      <option value="in_progress">Em andamento</option>
+      <option value="waiting_customer">Aguardando cliente</option>
+      <option value="resolved">Resolvido</option>
+      <option value="closed">Fechado</option>
+    </select>
+  </div>
+  <!-- Tickets list -->
+  <main>
+    <div id="ticketsContainer" class="cards-container"></div>
+  </main>
+
+  <!-- Ticket details modal -->
+  <div id="ticketModal" class="modal" hidden>
+    <div class="modal-content">
+      <button class="close-btn" id="closeTicketModal">&times;</button>
+      <h2 id="modalTicketTitle"></h2>
+      <p id="modalTicketNumber"></p>
+      <p id="modalTicketRequester"></p>
+      <p id="modalTicketDescription"></p>
+      <!-- Status update -->
+      <div class="status-section">
+        <label for="statusSelect">Status:</label>
+        <select id="statusSelect">
+          <option value="open">Aberto</option>
+          <option value="in_progress">Em andamento</option>
+          <option value="waiting_customer">Aguardando cliente</option>
+          <option value="resolved">Resolvido</option>
+          <option value="closed">Fechado</option>
+        </select>
+        <button id="updateStatusBtn">Atualizar</button>
+      </div>
+      <!-- Assignee update -->
+      <div class="assign-section">
+        <label for="assigneeInput">Responsável (UUID ou vazio):</label>
+        <input type="text" id="assigneeInput" placeholder="UUID">
+        <button id="assignBtn">Atribuir</button>
+      </div>
+      <h3>Mensagens</h3>
+      <ul id="messagesList" class="messages-list"></ul>
+      <button id="addCommentBtn">Adicionar comentário</button>
+      <h3>Anexos</h3>
+      <ul id="attachmentsList" class="attachments-list"></ul>
+      <div style="margin-top: 8px;">
+        <label for="attachmentInput">Upload:</label>
+        <input type="file" id="attachmentInput" />
+        <button id="uploadAttachmentBtn">Enviar</button>
+      </div>
+    </div>
+  </div>
+  <!-- Comment modal -->
+  <div id="commentModal" class="modal" hidden>
+    <div class="modal-content">
+      <button class="close-btn" id="closeCommentModal">&times;</button>
+      <h3>Novo comentário</h3>
+      <textarea id="commentBody" rows="4" placeholder="Digite seu comentário..."></textarea>
+      <button id="submitCommentBtn">Enviar</button>
+    </div>
+  </div>
+  <!-- New ticket modal -->
+  <div id="newTicketModal" class="modal" hidden>
+    <div class="modal-content">
+      <button class="close-btn" id="closeNewTicketModal">&times;</button>
+      <h3>Novo Ticket</h3>
+      <input type="text" id="newTitle" placeholder="Título" required />
+      <textarea id="newDescription" placeholder="Descrição" required></textarea>
+      <input type="text" id="newRequesterName" placeholder="Seu nome" required />
+      <input type="email" id="newRequesterEmail" placeholder="Seu e-mail" required />
+      <button id="createTicketBtn">Criar</button>
+    </div>
+  </div>
+
+  <script src="home.js"></script>
+</body>
+</html>

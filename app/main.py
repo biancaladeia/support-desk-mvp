@@ -3,8 +3,21 @@ from app.settings import settings
 from app.routes import tickets_router
 from app.routes.auth import router as auth_router
 from app.security import get_current_user, TokenData
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI(title="Support Desk MVP", version="0.1.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ],
+    allow_credentials=False,
+    allow_methods=["*"],   # inclui OPTIONS/POST/GET/…
+    allow_headers=["*"],   # ex.: Content-Type, Authorization
+)
 
 @app.get("/health")
 def health():
