@@ -13,6 +13,9 @@ from app.schemas import (
     TicketListOut, TicketAuditOut
 )
 
+from app.security import require_agent, require_admin, require_agent_or_admin, get_current_user, TokenData
+
+
 router = APIRouter()
 
 def _audit(db: Session, *, ticket_id: UUID, event: AuditEvent, actor_id: UUID | None, payload: dict):
@@ -28,7 +31,7 @@ def next_ticket_number(db: Session) -> int:
 
 
 # ---------- Create ----------
-@router.post("", response_model=TicketOut, status_code=201)
+@router.post("", response_model=TicketOut, status_code=201, dependencies=[Depends(require_agent_or_admin)])
 def create_ticket(payload: TicketCreate, db: Session = Depends(get_db)):
     t = Ticket(
         number=next_ticket_number(db),
@@ -53,7 +56,7 @@ def get_ticket(ticket_id: UUID, db: Session = Depends(get_db)):
 
 
 # ---------- Update status ----------
-@router.patch("/{ticket_id}/status", response_model=TicketOut)
+@router.patch("/{ticket_id}/status", response_model=TicketOut, dependencies=[Depends(require_agent_or_admin)])
 def update_status(ticket_id: UUID, payload: TicketStatusUpdate, db: Session = Depends(get_db)):
     t = db.get(Ticket, ticket_id)
     if not t:
@@ -120,7 +123,7 @@ def list_tickets(
 
 
 # ---------- Atribuição ----------
-@router.patch("/{ticket_id}/assignee", response_model=TicketOut)
+@router.patch("/{ticket_id}/assignee", response_model=TicketOut, dependencies=[Depends(require_agent_or_admin)])
 def update_assignee(ticket_id: UUID, payload: TicketAssigneeUpdate, db: Session = Depends(get_db)):
     t = db.get(Ticket, ticket_id)
 
@@ -168,7 +171,7 @@ def update_assignee(ticket_id: UUID, payload: TicketAssigneeUpdate, db: Session 
 
 
 # ---------- Mensagens internas ----------
-@router.post("/{ticket_id}/messages", response_model=TicketMessageOut, status_code=201)
+@router.post("/{ticket_id}/messages", response_model=TicketMessageOut, status_code=201, dependencies=[Depends(require_agent_or_admin)])
 def add_message(ticket_id: UUID, payload: TicketMessageCreate, db: Session = Depends(get_db)):
     ticket = db.get(Ticket, ticket_id)
     if not ticket:
@@ -195,7 +198,7 @@ def add_message(ticket_id: UUID, payload: TicketMessageCreate, db: Session = Dep
     db.refresh(msg)
     return msg
 
-@router.get("/{ticket_id}/audit", response_model=list[TicketAuditOut])
+@router.get("/{ticket_id}/audit", response_model=list[TicketAuditOut], dependencies=[Depends(require_admin)])
 def get_audit(ticket_id: UUID, db: Session = Depends(get_db)):
     t = db.get(Ticket, ticket_id)
     if not t:
@@ -204,3 +207,5 @@ def get_audit(ticket_id: UUID, db: Session = Depends(get_db)):
         select(TicketAudit).where(TicketAudit.ticket_id == ticket_id).order_by(TicketAudit.created_at.asc())
     ).scalars().all()
     return rows
+
+

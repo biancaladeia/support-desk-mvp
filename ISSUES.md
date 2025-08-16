@@ -20,18 +20,18 @@
 - [X] Índices em status, assignee_id, requester_email
 
 ## 4. Mensagens Internas
-- [ ] Modelo `TicketMessage(ticket_id, author_id, body)`
-- [ ] Endpoint POST /tickets/{id}/messages (nota interna)
-- [ ] Incluir mensagens no GET /tickets/{id}
+- [X] Modelo `TicketMessage(ticket_id, author_id, body)`
+- [X] Endpoint POST /tickets/{id}/messages (nota interna)
+- [X] Incluir mensagens no GET /tickets/{id}
 
 ## 5. Atribuição de Responsável
 - [X] FK `tickets.assignee_id -> users.id`
 - [X] Endpoint PATCH /tickets/{id}/assignee
 
 ## 6. Auditoria/Histórico
-- [ ] Modelo `TicketAudit(ticket_id, actor_id, event_type, payload)`
-- [ ] Eventos: ticket_created, status_changed, assignee_changed, message_added
-- [ ] Endpoint GET /tickets/{id}/audit
+- [X] Modelo `TicketAudit(ticket_id, actor_id, event_type, payload)`
+- [X] Eventos: ticket_created, status_changed, assignee_changed, message_added
+- [X] Endpoint GET /tickets/{id}/audit
 
 ## 7. RBAC simples
 - [ ] `users.role ∈ {agent, admin}` + seed inicial
