@@ -1,0 +1,281 @@
+{
+  "info": {
+    "name": "Support Desk MVP",
+    "_postman_id": "c5b3f0b1-5c54-4b11-9b11-collection",
+    "description": "Cole\u00e7\u00e3o de endpoints do Support Desk MVP",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{host}}/health",
+          "host": [
+            "{{host}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Me",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{host}}/me",
+          "host": [
+            "{{host}}"
+          ],
+          "path": [
+            "me"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Tickets - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"title\": \"Teste RBAC\", \"description\": \"desc\", \"requester_name\": \"RBAC\", \"requester_email\": \"rbac@example.com\"}"
+        },
+        "url": {
+          "raw": "{{host}}/tickets",
+          "host": [
+            "{{host}}"
+          ],
+          "path": [
+            "tickets"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Tickets - List",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{host}}/tickets",
+          "host": [
+            "{{host}}"
+          ],
+          "path": [
+            "tickets"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Tickets - Detail",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{host}}/tickets/{{ticket_id}}",
+          "host": [
+            "{{host}}"
+          ],
+          "path": [
+            "tickets",
+            "{{ticket_id}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Tickets - Patch Status",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\": \"in_progress\"}"
+        },
+        "url": {
+          "raw": "{{host}}/tickets/{{ticket_id}}/status",
+          "host": [
+            "{{host}}"
+          ],
+          "path": [
+            "tickets",
+            "{{ticket_id}}",
+            "status"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Tickets - Patch Assignee",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"assignee_id\": \"{{user_id}}\"}"
+        },
+        "url": {
+          "raw": "{{host}}/tickets/{{ticket_id}}/assignee",
+          "host": [
+            "{{host}}"
+          ],
+          "path": [
+            "tickets",
+            "{{ticket_id}}",
+            "assignee"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Tickets - Add Message",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"author_id\": \"{{user_id}}\", \"body\": \"Investigando passo 1.\"}"
+        },
+        "url": {
+          "raw": "{{host}}/tickets/{{ticket_id}}/messages",
+          "host": [
+            "{{host}}"
+          ],
+          "path": [
+            "tickets",
+            "{{ticket_id}}",
+            "messages"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Tickets - Upload Attachment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": ""
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{host}}/tickets/{{ticket_id}}/attachments",
+          "host": [
+            "{{host}}"
+          ],
+          "path": [
+            "tickets",
+            "{{ticket_id}}",
+            "attachments"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Tickets - Audit (admin only)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{host}}/tickets/{{ticket_id}}/audit",
+          "host": [
+            "{{host}}"
+          ],
+          "path": [
+            "tickets",
+            "{{ticket_id}}",
+            "audit"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "host",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "token",
+      "value": "PASTE_TOKEN_HERE"
+    },
+    {
+      "key": "ticket_id",
+      "value": "PASTE_TICKET_UUID"
+    },
+    {
+      "key": "user_id",
+      "value": "PASTE_USER_UUID"
+    }
+  ]
+}
